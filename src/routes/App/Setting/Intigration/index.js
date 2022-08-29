@@ -21,7 +21,7 @@ const useStyles = makeStyles(theme => ({
         }
     }, media: {
         height: "80px",
-        
+
         paddingTop: '56.25%', // 16:9,
         marginTop: '30',
 
@@ -55,7 +55,7 @@ const Intigration = () => {
             </Box>
             {
                 buttonSelection === 1 && <Box marginTop="4vh" width="100%" display="flex" >
-                    <Card style={{ width: "20%" , height:"50vh" , marginRight:"5%"}}>
+                    <Card style={{ width: "20%", height: "50vh", marginRight: "5%" }}>
                         <CardHeader
                             avatar={
                                 <Avatar sx={{ bgcolor: "red" }} aria-label="recipe">
@@ -69,7 +69,7 @@ const Intigration = () => {
                             className={classes.media}
                             image={require("./All Logos/github.png")} // require image
                             title="Contemplative Reptile"
-                            
+
                         />
                         <CardContent>
                             <Typography variant="body2" color="text.secondary">
@@ -78,7 +78,7 @@ const Intigration = () => {
                         </CardContent>
                     </Card>
 
-                    <Card style={{ width: "20%" , height:"50vh",marginRight:"8%"}}>
+                    <Card style={{ width: "20%", height: "50vh", marginRight: "8%" }}>
                         <CardHeader
                             avatar={
                                 <Avatar sx={{ bgcolor: "red" }} aria-label="recipe">
@@ -92,7 +92,7 @@ const Intigration = () => {
                             className={classes.media}
                             image={require("./All Logos/bitBucket.png")}// require image
                             title="Contemplative Reptile"
-                            
+
                         />
                         <CardContent>
                             <Typography variant="body2" color="text.secondary">
@@ -100,7 +100,7 @@ const Intigration = () => {
                             </Typography>
                         </CardContent>
                     </Card>
-                    <Card style={{ width: "20%" , height:"50vh",marginRight:"8%"}}>
+                    <Card style={{ width: "20%", height: "50vh", marginRight: "8%" }}>
                         <CardHeader
                             avatar={
                                 <Avatar sx={{ bgcolor: "red" }} aria-label="recipe">
@@ -114,16 +114,16 @@ const Intigration = () => {
                             className={classes.media}
                             image={require("./All Logos/Applitools.png")} // require image
                             title="Contemplative Reptile"
-                            
+
                         />
                         <CardContent>
                             <Typography variant="body2" color="text.secondary">
-                            Want to use the full capabilities of our app? Contact
-                             us and we will help you maximize your testings.
+                                Want to use the full capabilities of our app? Contact
+                                us and we will help you maximize your testings.
                             </Typography>
                         </CardContent>
                     </Card>
-                    <Card style={{ width: "20%" , height:"50vh",marginRight:"8%"}}>
+                    <Card style={{ width: "20%", height: "50vh", marginRight: "8%" }}>
                         <CardHeader
                             avatar={
                                 <Avatar sx={{ bgcolor: "red" }} aria-label="recipe">
@@ -135,14 +135,14 @@ const Intigration = () => {
                         <hr />
                         <CardMedia
                             className={classes.media}
-                            image={require("./All Logos/Slack.png")}// require image
+                            image={require("./All Logos/.png")}// require image
                             title="Contemplative Reptile"
-                            
+
                         />
                         <CardContent>
                             <Typography variant="body2" color="text.secondary">
-                            Want to use the full capabilities of our app? Contact
-                             us and we will help you maximize your testings.
+                                Want to use the full capabilities of our app? Contact
+                                us and we will help you maximize your testings.
                             </Typography>
                         </CardContent>
                     </Card>
@@ -155,8 +155,32 @@ const Intigration = () => {
                 </Box>
             }
             {
-                buttonSelection === 3 && <Box width="100%" bgcolor={"blue"}>
-                    r
+                buttonSelection === 3 && <Box marginTop="4vh" width="100%" display="flex" >
+                    <Card style={{ width: "20%", height: "50vh", marginRight: "5%" }}>
+                        <CardHeader
+                            avatar={
+                                <Avatar sx={{ bgcolor: "red" }} aria-label="recipe">
+                                    T
+                                </Avatar>
+                            }
+                            title="TestRail"
+                        />
+                        <hr />
+                        <CardMedia
+                            className={classes.media}
+                            image={require("./All Logos/TestRail.png")} // require image
+                            title="Contemplative Reptile"
+
+                        />
+
+                        <CardContent>
+                            <Typography variant="body2" color="text.secondary">
+                            Please login to TestRail to start the integration
+                            </Typography>
+                        </CardContent>
+                    </Card>
+
+
                 </Box>
             }
 
