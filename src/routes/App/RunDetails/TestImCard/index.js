@@ -8,7 +8,10 @@ import CmtCardMedia from '@coremat/CmtCard/CmtCardMedia';
 import { lighten, makeStyles, withStyles } from '@material-ui/core/styles';
 import { Typography, Box, Avatar } from '@material-ui/core';
 import { green, red } from '@material-ui/core/colors';
+import { AiOutlineDelete, FiSettings, BiFullscreen } from 'react-icons/all'
 import MediaViewer from './MediaViewer'
+import '../../../../css/result.css'
+
 
 const useStyles = makeStyles(() => ({
   cardRoot: {
@@ -97,6 +100,62 @@ const HoverInfoCard = ({
       console.log(e)
     }
   }
+
+  return (
+    // .step_step_2SKe7_9yLXN0ZXAt.step_selected_1f3Tj_9yLXN0ZXAt
+    // "--multiline-first-line-negative-margin:10px;"
+    <div className="StepPair_stepPair_2MZRY_RlcFBhaXIt StepPair_noMargin_Dz5Td_RlcFBhaXIt">
+      <div className="StepPair_dragHandler_3UslT_RlcFBhaXIt" role="button" tabIndex="0" aria-roledescription="draggable" aria-describedby="DndDescribedBy-1">
+        <div className="StepPair_stepWrapper_1FJq-_RlcFBhaXIt">
+          {/* <div className="step_step_2SKe7_9yLXN0ZXAt step_clickable_3F23T_9yLXN0ZXAt"> */}
+          {/* <div className="step_step_2SKe7_9yLXN0ZXAt step_selected_1f3Tj_9yLXN0ZXAt"> */}
+          <div className="step_step_2SKe7_9yLXN0ZXAt step_clickable_3F23T_9yLXN0ZXAt">
+            <div className="step_content_3rIqg_9yLXN0ZXAt">
+              <img
+                // src="https://res.cloudinary.com/testim/image/upload/$id_current/if_ih_gt_408/if_iw_gt_1332/e_colorize:50,co_black/l_$id,c_crop,dpr_auto,x_1104,y_312,w_228,h_96/fl_layer_apply,c_crop,dpr_auto,x_1104,y_312,w_228,h_96,g_north_west/if_end/if_end/c_crop,dpr_auto,x_1038,y_285,w_360,h_150/c_scale,w_360,h_150/PEqBpmffHB.jpg"
+                src={imageUrl}
+                onClick={handleMediaClick}
+                style={{ objectFit: 'fill' }}
+              />
+              <div className="step_badges_2D3yQ_9yLXN0ZXAt" />
+            </div>
+            <div className="step_stepIcon_2Fakt_9yLXN0ZXAt">
+              <i className="tst-icon icon_icon_WbfCm_RzLWljb24t" aria-hidden="true">
+                {icon}
+              </i>
+            </div>
+            <div className="step_footer_7j1gh_9yLXN0ZXAt">
+              <span className="step_description_2i4ZL_9yLXN0ZXAt">{title} "{subTitle}"</span>
+              <ul className="StepPair_stepActions_1qE7E_RlcFBhaXIt StepActions_stepActionsBox_1Jx9t_FjdGlvbnMt">
+                <li className="StepActions_stepActionsButton_2jmAO_FjdGlvbnMt" title="View screenshot">
+                  <div className="StepActions_iconWrapper_3zMpH_FjdGlvbnMt">
+                    <i className="tst-icon icon_icon_WbfCm_RzLWljb24t" aria-hidden="true">
+                      <BiFullscreen onClick={handleMediaClick} />
+                    </i>
+                  </div>
+                </li>
+                <li className="StepActions_stepActionsButton_2jmAO_FjdGlvbnMt" title="Show properties">
+                  <div className="StepActions_iconWrapper_3zMpH_FjdGlvbnMt">
+                    <i className="tst-icon icon_icon_WbfCm_RzLWljb24t" aria-hidden="true">
+                      <FiSettings />
+                    </i>
+                  </div>
+                </li>
+                <li className="StepActions_stepActionsButton_2jmAO_FjdGlvbnMt" title="Delete step">
+                  <div className="StepActions_iconWrapper_3zMpH_FjdGlvbnMt">
+                    <i className="tst-icon icon_icon_WbfCm_RzLWljb24t" aria-hidden="true">
+                      <AiOutlineDelete />
+                    </i>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <MediaViewer position={mediaPosition} medias={[{ preview: medaPreview, name: 'Test', metaData: { type: 'image' } }]} handleClose={handleMediaClose} />
+    </div>
+  )
 
   return (
 

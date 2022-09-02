@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Divider, Box, Card, CardHeader, Avatar, IconButton, CardMedia, CardContent, CardActions, Collapse, } from '@material-ui/core';
 import { Typography, Button } from '@mui/material';
-import BugReportIcon from '@material-ui/icons/BugReport';
 import PageContainer from '@jumbo/components/PageComponents/layouts/PageContainer';
 import { Link } from 'react-router-dom';
 import { lighten, makeStyles, alpha } from '@material-ui/core/styles';
@@ -26,12 +25,6 @@ const useStyles = makeStyles(theme => ({
         paddingTop: '56.25%', // 16:9,
         marginTop: '30',
 
-    },
-    hoverEffect:{
-        "&:hover": {
-          boxShadow:"1px 1px 1px 1px ",
-          cursor:"pointer"
-        }
     }
 }));
 
@@ -157,46 +150,10 @@ const Intigration = () => {
 
             }
             {
-                buttonSelection === 2
-                &&
-                <Box display="flex" justifyContent="space-evenly" alignItems="center" width="50%" flexDirection="column">
-                    <BugReportIcon style={{ marginTop: "5vh", fontSize: "3rem" }} />
-
-                    <Typography variant='body1'>
-                        Hello Gul!
-                    </Typography>
-
-                    <Typography variant='body1'>
-                        This is the first bug you publish.
-                    </Typography>
-
-                    <Typography variant='body1'>
-                        This is the first bug you publish.
-                        Choose your tracker to publish bug automatically
-                    </Typography>
-                    <Box  mt="5vh" width="80%" height="15vh" display="flex" justifyContent="space-evenly" >
-                        <Box className={classes.hoverEffect} boxShadow={1} width="20%" display="flex" justifyContent="space-evenly" alignItems="center">
-                            <img style={{ width: "40px" }} src={require("./All Logos/jira.png")} alt='pic' />
-                            < Typography>Jira</Typography>
-                           
-                        </Box>
-                        <Box className={classes.hoverEffect} boxShadow={1} width="20%" display="flex" justifyContent="space-evenly" alignItems="center">
-                            <img style={{ width: "40px" }} src={require("./All Logos/Trello.png")} alt='pic' />
-                            < Typography> Trello</Typography>
-                        </Box>
-                        <Box className={classes.hoverEffect} boxShadow={1} width="20%" display="flex" justifyContent="space-evenly" alignItems="center">
-                            <img style={{ width: "40px" }}src={require("./All Logos/Slack.png")} alt='pic' />
-                            < Typography>Slack</Typography>
-                        </Box>
-                       
-                        <Box className={classes.hoverEffect} boxShadow={1} width="20%" display="flex" justifyContent="space-evenly" alignItems="center">
-                            <img style={{ width: "40px" }} src={require("./All Logos/github.png")} alt='pic' />
-                            < Typography>GitHub</Typography>
-                        </Box>
-                    </Box>
-
-
-
+                buttonSelection === 2 && <Box width="100%" bgcolor={"yellow"}>
+                    <h1>
+                        Under Construction 
+                    </h1>
                 </Box>
             }
             {
@@ -220,7 +177,7 @@ const Intigration = () => {
 
                         <CardContent>
                             <Typography variant="body2" color="text.secondary">
-                                Please login to TestRail to start the integration
+                            Please login to TestRail to start the integration
                             </Typography>
                         </CardContent>
                     </Card>

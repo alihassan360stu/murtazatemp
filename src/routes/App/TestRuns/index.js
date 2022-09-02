@@ -24,11 +24,13 @@ import { useSelector } from 'react-redux';
 import Comments from '../Comments';
 import { BiCommentDots, FaInfoCircle } from 'react-icons/all'
 import { Constants } from '@services';
+import { useHistory } from 'react-router';
 
 const MySwal = withReactContent(Swal);
 var crypto = require('crypto');
 
 const breadcrumbs = [];
+
 
 const useStyles = makeStyles(theme => ({
 
@@ -113,8 +115,6 @@ const Toast = MySwal.mixin({
   },
 });
 
-
-
 var tableRef = createRef();
 
 const ListAll = (props) => {
@@ -127,6 +127,7 @@ const ListAll = (props) => {
   const org = useSelector(({ org }) => org);
   const [showComments, setShowComments] = useState(false);
   const [histId, setHistId] = useState(null);
+  const history = useHistory();
 
   const dateStatusArr = [
     { name: 'Today', value: 1 },
@@ -255,8 +256,9 @@ const ListAll = (props) => {
     event.preventDefault();
     setTimeout(() => {
       var cipher = crypto.createCipher(Constants.ALGO, Constants.TKV);
-      var encrypted = cipher.update(rowData._id, 'utf8', 'hex') + cipher.final('hex');
-      window.open(window.location.origin + `/app/rundetail/` + encrypted, '_blank');
+      var encrypted = cipher.update(JSON.stringify(rowData), 'utf8', 'hex') + cipher.final('hex');
+      // window.open(window.location.origin + `/app/rundetail/` + encrypted, '_blank');
+      history.push('rundetail/' + encrypted)
     }, 10);
   };
 

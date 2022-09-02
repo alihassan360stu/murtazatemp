@@ -24,6 +24,7 @@ import Chart from './Chart'
 import TestInfo from './TestInfo'
 import Comments from '../Comments';
 import { BiCommentDots, FaInfoCircle } from 'react-icons/all'
+import { useHistory } from 'react-router';
 
 var crypto = require('crypto');
 const MySwal = withReactContent(Swal);
@@ -138,6 +139,7 @@ const ListAll = (props) => {
   const [dateStatus, setDateStatus] = useState(4);
   const [browserTF, setBrowser] = useState(0);
   const [resultStatus, setResultStatus] = useState(0);
+  const history = useHistory();
 
   const getBrowser = (browser) => {
 
@@ -275,13 +277,13 @@ const ListAll = (props) => {
     }, 10);
   };
 
-
   const infoRowClick = async (event, rowData) => {
     event.preventDefault();
     setTimeout(() => {
       var cipher = crypto.createCipher(Constants.ALGO, Constants.TKV);
-      var encrypted = cipher.update(rowData._id, 'utf8', 'hex') + cipher.final('hex');
-      window.open(window.location.origin + `/app/rundetail/` + encrypted, '_blank');
+      var encrypted = cipher.update(JSON.stringify(rowData), 'utf8', 'hex') + cipher.final('hex');
+      // window.open(window.location.origin + `/app/rundetail/` + encrypted, '_blank');
+      history.push('/app/rundetail/' + encrypted)
     }, 10);
   };
 

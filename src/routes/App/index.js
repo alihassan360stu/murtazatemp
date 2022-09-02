@@ -8,12 +8,12 @@ import { ListTests } from './Tests'
 import { ListOrgs } from './Organizations'
 import { ListGroups } from './Groups'
 import UnderConstruction from './UnderConstruction';
+import Setting from './Setting';
 import TestHistory from './TestHistory';
 import RunDetails from './RunDetails';
 import Schedules from './Schedules';
 import TestRuns from './TestRuns';
 import { useEffect } from 'react';
-import Setting from "./Setting"
 
 const Routes = () => {
   const requestedUrl = '/app/'

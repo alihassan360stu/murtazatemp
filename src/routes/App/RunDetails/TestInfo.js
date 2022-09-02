@@ -53,7 +53,7 @@ const View = ({ info }) => {
           <div style={{ display: 'flex' }}>
             <h4>Test Name </h4>
             &nbsp;&nbsp;
-            <h3><b>{info ? info.name : ''}</b></h3>
+            <h3><b>{info ? info.test_name : ''}</b></h3>
           </div>
           <div style={{ display: 'flex' }}>
             <h4>Test Description </h4>

@@ -36,6 +36,7 @@ import MultiRun from './MultiRun';
 import { useEffect } from 'react';
 import { Constants } from '@services';
 import { GrSchedulePlay, AiTwotoneDelete, MdHistoryToggleOff, CgFileAdd, FaEdit, BsFillPlayFill, HiOutlineDuplicate, MdDriveFileMoveOutline } from 'react-icons/all'
+import { useHistory } from 'react-router';
 // import { CProgress } from '@coreui/bootstrap-react'
 // import { CProgressBar } from '@coreui/bootstrap-react'
 
@@ -162,7 +163,7 @@ const ListAll = (props) => {
   const [showEdit, setShowEdit] = useState(false);
   const org = useSelector(({ org }) => org);
   const [selectedRows, setSelectedRows] = useState([]);
-
+  const history = useHistory()
   const [moreOptions, setMoreOptions] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -327,7 +328,8 @@ const ListAll = (props) => {
       setRowData(selectedRows[0])
       var cipher = crypto.createCipher(Constants.ALGO, Constants.TKV);
       var encrypted = cipher.update(selectedRows[0]._id, 'utf8', 'hex') + cipher.final('hex');
-      window.open(window.location.origin + `/app/testruns/` + encrypted, '_blank');
+      // window.open(window.location.origin + `/app/testruns/` + encrypted, '_blank');
+      history.push('testruns/' + encrypted)
     }, 10);
   }
 
@@ -570,7 +572,7 @@ const ListAll = (props) => {
     return new Promise((resolve, reject) => {
       let { test_id, browser } = params
       let data = qs.stringify({
-        id:test_id,
+        id: test_id,
         browser,
         org_id: org._id,
         type: 1
