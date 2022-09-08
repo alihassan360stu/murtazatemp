@@ -313,13 +313,13 @@ const ListAll = (props) => {
 
   const actions = [
     row => ({
-      icon: () => row.is_active ? <FiCheckCircle style={{ color: green[500] }} size={20}/> : <IoIosCloseCircle style={{ color: red[500] }} size={25}/>,
+      icon: () => row.is_active ? <FiCheckCircle style={{ color: green[500] }} size={20} /> : <IoIosCloseCircle style={{ color: red[500] }} size={25} />,
       className: '',
       tooltip: `${row.is_active ? 'Block' : 'UnBlock'} Schedule`,
       onClick: blockRowClick,
     }),
     row => ({
-      icon: () => <RiDeleteBin7Line style={{ color: red[500] }} size={20}/>,
+      icon: () => <RiDeleteBin7Line style={{ color: red[500] }} size={20} />,
       className: '',
       tooltip: `Delete Schedule`,
       onClick: deleteRowClick,
@@ -335,7 +335,7 @@ const ListAll = (props) => {
         <MaterialTable
           tableRef={tableRef}
           icons={tableIcons}
-          title="Test Runs"
+          title="Schedules"
           columns={columns}
           actions={actions}
           data={async (query) => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, CircularProgress, Backdrop, Dialog } from '@material-ui/core';
+import { Box, Button, CircularProgress, Backdrop, Dialog, Grid, FormControl, FormControlLabel, Checkbox } from '@material-ui/core';
 import { lighten, makeStyles, alpha } from '@material-ui/core/styles';
 import { useSelector } from 'react-redux';
 
@@ -11,9 +11,9 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import Axios from 'axios';
 import BasicForm from './BasicForm';
-import Schedule from './Schedule';
 import validator from 'validator';
 import moment from 'moment-timezone'
+import GridContainer from '@jumbo/components/GridContainer';
 
 const MySwal = withReactContent(Swal);
 
@@ -70,49 +70,73 @@ const Toast = MySwal.mixin({
 
 
 const iniitalFormState = {
-  schedule_type: 1,
   name: '',
   description: '',
-  timezone: moment.tz.guess(true),
-  notify_on: 1,
-  prefs: 1,
-  emails: ''
+  permission: ''
 }
 
-const initialDays = [false, false, false, false, false, false, false,];
-const initialBrowsers = [false, false, false];
+const initalPermissionsState = {
+  "create-organization": false,
+  "edit-organization": false,
+  "delete-organization": false,
+  "list-organization": false,
+  "list-group": false,
+  "create-group": false,
+  "edit-group": false,
+  "delete-group": false,
+  "list-schedule": false,
+  "create-schedule": false,
+  "edit-schedule": false,
+  "delete-schedule": false,
+  "create-test": false,
+  "edit-test": false,
+  "delete-test": false,
+  "run-test": false,
+  "list-test": false,
+  "list-test-history": false,
+  "add-test-group": false,
+  "change-test-group": false,
 
-const EditDialog = ({ hideDialog, groupId, testId, link }) => {
+}
+
+const EditDialog = ({ hideDialog, tableRef }) => {
   // dialogState
   const classes = useStyles();
   const [formState, setFormState] = useState(iniitalFormState);
   const [busy, setBusy] = useState(false);
-  const [reset, setReset] = useState(true);
-  const [hours, setHours] = useState(1);
-  const [browsers, setBrowsers] = useState(initialBrowsers);
-  const [days, setDays] = useState(initialDays);
+  const [changeCheck, setChangeCheck] = useState(false);
+  const [selectedPerms, setSelectedPerms] = useState([])
+  const [mainPerms, setMainPerms] = useState([])
   const org = useSelector(({ org }) => org);
 
-  const resetForm = () => {
-    setDays(initialDays)
-    setHours(1)
-    setBrowsers(initialBrowsers)
-    setBusy(false)
-    setFormState(iniitalFormState)
-  }
+  const handleChange = event => {
+    try {
+      var { name, value, checked } = event.target
+      let tempArr = selectedPerms;
+      console.log({ name, value, checked });
+      if (checked) {
+        if (!tempArr.includes(value)) {
+          tempArr.push(value)
+        }
+      } else {
+        tempArr = tempArr.filter(item => item !== value)
+      }
+      setChangeCheck(true)
+      // setSelectedPerms(tempArr)
+      setSelectedPerms(tempArr)
+      setTimeout(() => {
+        setChangeCheck(false)
+      }, 500);
+    } catch (e) {
+
+    }
+  };
 
   const handleOnChangeTF = (e) => {
     var { name, value } = e.target;
     e.preventDefault();
     setFormState(prevState => ({ ...prevState, [name]: value }));
   }
-
-  useEffect(() => {
-    if (reset) {
-      setReset(false)
-    }
-    resetForm()
-  }, [reset])
 
   const showMessage = (icon, text, title) => {
     Toast.fire({
@@ -122,70 +146,37 @@ const EditDialog = ({ hideDialog, groupId, testId, link }) => {
   }
 
   const validate = () => {
-    console.log(formState);
-    console.log(browsers);
-    console.log(days);
-
-    let { name, description, timezone, schedule_type, prefs } = formState;
+    let { name, description } = formState;
 
     if (!validator.isLength(name, { min: 5 })) {
-      showMessage('error', "Invalid Schedule Name", '')
+      showMessage('error', "Invalid Role Name", '')
       return false;
     }
 
     if (!validator.isLength(description, { min: 7 })) {
-      showMessage('error', "Invalid Schedule Description", '')
+      showMessage('error', "Invalid Role Description", '')
       return false;
     }
 
-    if (schedule_type == 1) {
-      if (!validator.isLength(timezone, { min: 7 })) {
-        showMessage('error', "Invalid Schedule Timezone", '')
-        return false;
-      }
-    }
-
-    // debugger;
-    let temp = [];
-    if (schedule_type == 1) {
-      for (let x = 0; x < days.length; x++) {
-        let item = days[x];
-        if (item) {
-          temp.push((x + 1))
-        }
-      }
-      if (temp.length < 1) {
-        showMessage('error', "Please Select Frequency First To Continue", '')
-        return false;
-      }
-    }
-
-    temp = [];
-    for (let x = 0; x < browsers.length; x++) {
-      let item = browsers[x];
-      if (item) {
-        temp.push((x + 1))
-      }
-    }
-
-    if (temp.length < 1) {
-      showMessage('error', "Please Select Atleast A Browser, To Continue", '')
+    if (selectedPerms.length < 1) {
+      showMessage('error', "Please Select At-Least One Permission", '')
       return false;
     }
+
     return true;
   }
 
   const submitRequest = (data) => {
     try {
       setBusy(true)
-      Axios.post(`schedule/${link}`, data).then(result => {
+      Axios.post(`role/create`, data).then(result => {
         result = result.data;;
         console.log(result)
         if (result.status) {
           showMessage('success', result.message);
-          resetForm()
           setTimeout(() => {
             hideDialog(false)
+            tableRef.current.onQueryChange();
           }, 1000);
         } else {
           setBusy(false)
@@ -205,49 +196,14 @@ const EditDialog = ({ hideDialog, groupId, testId, link }) => {
     e.preventDefault();
     if (validate()) {
       try {
-        let { name, description, schedule_type, prefs, emails, timezone, notify_on } = formState;
-        let temp = [];
-        for (let x = 0; x < days.length; x++) {
-          let item = days[x];
-          if (item) {
-            temp.push((x + 1))
-          }
-        }
-        let frequency = '';
-        if (temp.length > 0)
-          frequency = temp.join(",");
-        else
-          frequency = "1";
+        let { name, description } = formState;
+        let dataToSubmit = {
+          name,
+          description,
+          permission: selectedPerms.join(',')
+        };
+        submitRequest(dataToSubmit)
 
-        temp = [];
-        for (let x = 0; x < browsers.length; x++) {
-          let item = browsers[x];
-          if (item) {
-            temp.push((x + 1))
-          }
-        }
-        let browsersIds = temp.join(",");
-
-        if (org) {
-          let dataToSubmit = {
-            name,
-            description,
-            test_id: testId,
-            schedule_type,
-            timezone,
-            hours,
-            frequency,
-            emails,
-            preference: prefs,
-            notify_on,
-            browsers: browsersIds,
-            org_id: org._id,
-            group_id: groupId
-          };
-          submitRequest(dataToSubmit)
-        } else {
-          MySwal.fire('Error', 'No Organization Selected', 'error');
-        }
       } catch (e) {
         MySwal.fire('Error', e, 'error');
       }
@@ -258,6 +214,25 @@ const EditDialog = ({ hideDialog, groupId, testId, link }) => {
     e.preventDefault();
     hideDialog(false)
   }
+
+  const getPermissions = () => {
+    Axios.post('/permission', { search: '', page: 1, pageSize: 200 }).then(ans => {
+      setBusy(false)
+      if (ans.data.status) {
+        setMainPerms(ans.data.data)
+      } else {
+        showMessage('error', ans.data.message);
+      }
+    }).catch(e => {
+      setBusy(false)
+      showMessage('error', e);
+    })
+  }
+
+  useEffect(() => {
+    // if (mainPerms.length < 1)
+    getPermissions()
+  }, [])
 
   return (
     <PageContainer heading="" breadcrumbs={[]}>
@@ -277,38 +252,39 @@ const EditDialog = ({ hideDialog, groupId, testId, link }) => {
           <CmtCardContent >
             <div>
               <Box className={classes.pageTitle} fontSize={{ xs: 15, sm: 15 }}>
-                Schedule Test
+                Create Policy
               </Box>
             </div>
             <Divider />
-            {/* sx={{ overflowY: "scroll" }} */}
-            <form autoComplete="off" onSubmit={onSubmit}>
-              <Box mb={2} >
-                <Box display={'flex'}>
-                  <BasicForm
-                    style={{ width: '100%' }}
-                    state={formState}
-                    busy={busy}
-                    handleOnChangeTF={handleOnChangeTF}
-                  />
 
-                  <Divider orientation='vertical' variant='inset' style={{ width: '20px' }} />
-                  {!reset &&
-                    <Schedule
-                      style={{ width: '100%' }}
-                      state={formState}
-                      busy={busy}
-                      handleOnChangeTF={handleOnChangeTF}
-                      days={days}
-                      setDays={setDays}
-                      browsers={browsers}
-                      setBrowsers={setBrowsers}
-                      setBusy={setBusy}
-                      setHours={setHours}
-                    />}
-                </Box>
+            <form autoComplete="off" onSubmit={onSubmit}>
+              <Box mb={2}>
+                <BasicForm
+                  style={{ width: '100%' }}
+                  state={formState}
+                  busy={busy}
+                  handleOnChangeTF={handleOnChangeTF}
+                />
                 <br />
                 <Divider />
+                <br />
+                {!busy && <Box display={'felx'} justifyContent={'center'}>
+                  <GridContainer>
+                    {mainPerms.map(item => {
+                      return <Grid key={item._id} sm={3}>
+                        <FormControlLabel
+                          control={<Checkbox checked={selectedPerms.includes(item._id)} onChange={handleChange} name={item.name} disabled={busy} value={item._id} />}
+                          label={item.description}
+                        />
+                      </Grid>
+                    })}
+                  </GridContainer>
+                </Box>
+                }
+                <br />
+                <Divider />
+
+
                 {/* <br />
                 <Divider /> */}
                 <Button style={{ marginTop: 10 }} type='submit' variant="contained" color="primary" disabled={busy}>

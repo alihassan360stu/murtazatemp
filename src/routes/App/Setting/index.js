@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Divider, Box, Grid } from '@material-ui/core';
 import PageContainer from '@jumbo/components/PageComponents/layouts/PageContainer';
 import { makeStyles, withStyles, alpha, useTheme, lighten } from '@material-ui/core/styles';
@@ -12,11 +12,12 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import SwipeableViews from 'react-swipeable-views';
 
-
 const useStyles = makeStyles(theme => ({
     root: {
         flexGrow: 1,
         maxWidth: '100%',
+        // padding: '2%',
+        // margin: '0 auto',
         backgroundColor: theme.palette.background.paper,
     },
     titleRoot: {
@@ -79,8 +80,6 @@ const useStyles = makeStyles(theme => ({
 function TabPanel(props) {
     const { children, value, index, ...other } = props;
 
-    console.log("ppppppppp ",props);
-
     return (
         <Box
             role="tabpanel"
@@ -103,6 +102,10 @@ const AntTabs = withStyles({
     },
     indicator: {
         backgroundColor: '#6A03DD',
+        // height: 2.5,
+        // fontWeight: 400,
+        // marginLeft: 20,
+        // marginRight: 20
     },
 })(Tabs);
 
@@ -154,11 +157,13 @@ function a11yProps(index) {
 
 const Setting = () => {
     const classes = useStyles();
+    const [showBorder, setShowBorder] = useState([true, false, false])
     const [value, setValue] = React.useState(0);
     const theme = useTheme();
 
     const handleChangeIndex = index => {
         setValue(index);
+        // alert('here')
     };
 
     const handleChange = (event, newValue) => {
@@ -206,6 +211,36 @@ const Setting = () => {
                     </TabPanel>
                 </SwipeableViews>
             </Box>
+
+            {/* <Box display="flex" alignItems="center" width="40%" height="4vh">
+                <span
+                    style={{ borderBottom: showBorder[0] && "1px solid blue", color: showBorder[0] && "blue", marginRight: "5%" }}
+                    onClick={() => { setShowBorder([true, false, false]) }}
+                    className={classes.hover}><Typography variant="h5" className={classes.typo}> CLI </Typography></span>
+                <span
+                    style={{ borderBottom: showBorder[1] && "1px solid blue", color: showBorder[1] && "blue", marginRight: "5%" }}
+                    onClick={() => { setShowBorder([false, true, false]) }}
+                    className={classes.hover}><Typography variant="h5" className={classes.typo}> Intigration </Typography></span>
+                <span
+                    style={{ borderBottom: showBorder[2] && "1px solid blue", color: showBorder[2] && "blue" }}
+                    onClick={() => { setShowBorder([false, false, true]) }}
+                    className={classes.hover}><Typography variant="h5" className={classes.typo}> Report </Typography></span>
+
+            </Box>
+            <Box>
+                <br />
+                <br />
+                <br />
+                {
+                    showBorder[0] && <CLI />
+                }
+                {
+                    showBorder[1] && < Intigration />
+                }
+                {
+                    showBorder[2] && <Report />
+                }
+            </Box> */}
         </PageContainer>
     );
 };

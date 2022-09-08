@@ -1,9 +1,9 @@
 import React, { useState, forwardRef, createRef } from 'react';
-import { Box, MenuItem, Button, TextField } from '@material-ui/core';
+import { Box, MenuItem, CircularProgress, Fab, Avatar, Tooltip, Typography, IconButton, Button } from '@material-ui/core';
 import { MenuList, Paper, Popover } from '@material-ui/core';
 
 import { lighten, makeStyles } from '@material-ui/core/styles';
-import { blue, grey } from '@material-ui/core/colors';
+import { blue, green, orange, red } from '@material-ui/core/colors';
 import { useSelector } from 'react-redux';
 
 import PageContainer from '@jumbo/components/PageComponents/layouts/PageContainer';
@@ -11,25 +11,22 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import Axios from 'axios';
 import qs from 'qs';
+import Fade from 'react-reveal/Fade';
+import "react-virtualized/styles.css";
 
 import {
   AddBox, ArrowDownward, Check, ChevronLeft,
   ChevronRight, Clear, DeleteOutline, Edit,
   FilterList, FirstPage, LastPage, Remove, SaveAlt, Search, ViewColumn,
-  MoreVert, Done, Delete
+  Delete
 }
   from '@material-ui/icons';
 
 import MaterialTable from '@material-table/core';
 import { withStyles } from '@material-ui/styles';
-// import EditDialog from './EditDialog';
-import { ExportCsv, ExportPdf } from '@material-table/exporters';
-import moment from 'moment';
-import AddNew from './AddNew';
-import { useDispatch } from 'react-redux';
-import { setSelectedOrg } from '@redux/actions';
-import { AuhMethods } from '@services/auth';
-
+import AddNew from "./AddNew"
+import EditUser from "./EditUser"
+import { AiOutlineUserAdd } from 'react-icons/all'
 const MySwal = withReactContent(Swal);
 
 const breadcrumbs = [];
@@ -54,6 +51,10 @@ const useStyles = makeStyles(theme => ({
     zIndex: theme.zIndex.drawer + 1,
     color: '#fff',
   },
+  buttons: {
+    // transition: 'all 6.6s ease',
+    transition: 'opacity 2.6s ease-in',
+  },
 
   pageTitle: {
     color: theme.palette.text.primary,
@@ -61,6 +62,13 @@ const useStyles = makeStyles(theme => ({
     lineHeight: 1.5,
     marginBottom: 20,
     textShadow: '6px 4px 6px hsla(0,0%,45.9%,.8)',
+  },
+
+  tableRowTitle: {
+    color: theme.palette.text.primary,
+    fontWeight: 800,
+    lineHeight: 1.5,
+    // textShadow: '0px 4px 4px hsla(0,0%,45.9%,.8)',
   },
   tableNumberField: {
     color: theme.palette.text.primary,
@@ -70,13 +78,6 @@ const useStyles = makeStyles(theme => ({
     textShadow: '2px 2px 3px hsla(0,0%,45.9%,.8)',
   },
 }));
-
-// const initalState = {
-//   totalData: 0,
-//   is_loading: true,
-//   showDialog: false,
-//   rowData: {}
-// }
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -131,44 +132,75 @@ var tableRef = createRef();
 const ListAll = (props) => {
   const { theme } = props;
   const classes = useStyles();
-  const dispatch = useDispatch();
   const [dialogState, setDialogState] = useState(initialDialogState);
   const [refereshData, setRefereshData] = useState(false);
-  const { authUser } = useSelector(({ auth }) => auth);
-  const [type, setType] = useState(0)
-
-  // const [rowData, setRowData] = useState(undefined);
-  const [showCreateDial, setShowCreateDial] = useState(false);
+  const [busy, setBusy] = useState(false);
   const org = useSelector(({ org }) => org);
-  const [moreOptions, setMoreOptions] = useState([]);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [showCreateDial, setShowCreateDial] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
 
   const columns = [
     {
-      title: 'S#', width: "4%", field: 'index', render: (rowData) => {
+      title: 'S#', width: "10%", field: 'index', render: (rowData) => {
         return (
           <div>
-            <h5>{rowData.index}</h5>
+            <Typography variant="h5">
+              {rowData.index}
+            </Typography>
+          </div>
+        )
+      }
+    },
+
+    {
+      title: 'User Name', field: 'username', render: (rowData) => {
+        return (
+
+          <Box display="flex" alignItems="center">
+            <Avatar style={{ backgroundColor: "blue", marginRight: "4%", textTransform: "uppercase" }}>{rowData.username[0]}</Avatar>
+            <Typography variant="h5">
+              {rowData.username}
+            </Typography>
+          </Box>
+
+        )
+      }
+    },
+    {
+      title: 'Full Name', field: 'full_name', render: (rowData) => {
+        return (
+
+          <Box display="flex" alignItems="center">
+            <Typography variant="h5">
+              {rowData.full_name}
+            </Typography>
+          </Box>
+
+        )
+      }
+    },
+    {
+      title: 'Email', field: 'Email', render: (rowData) => {
+        return (
+          <div style={{ display: 'flex', alignItems: "center" }}>
+            <Typography variant="h5">
+              {rowData.email}
+            </Typography>
           </div>
         )
       }
     },
     {
-      title: 'Name', field: 'name', render: (rowData) => {
+      title: 'Account Type', field: 'type', render: (rowData) => {
         return (
-          <div>
-            <h5>{rowData.name}</h5>
-          </div>
-        )
-      }
-    },
-    {
-      title: 'Description', field: 'description', render: (rowData) => {
-        return (
-          <div>
-            <h5>{rowData.description}</h5>
-          </div>
+
+          <Box display="flex" alignItems="center">
+            <Typography variant="h5">
+              {rowData.type}
+            </Typography>
+          </Box>
+
         )
       }
     },
@@ -176,25 +208,31 @@ const ListAll = (props) => {
 
   const getData = (params) => {
     return new Promise((resolve, reject) => {
-
       let { page, pageSize, search } = params
       let data = qs.stringify({
         search,
         page,
         pageSize,
-        status: 1,
-        type
       });
 
       var config = {
         method: 'post',
-        url: '/organization',
+        url: '/user',
         data: data
       };
 
       Axios(config).then(ans => {
-        console.log(ans.data)
         if (ans.data.status) {
+          let runningIds = localStorage.getItem('runningIds');
+          runningIds = runningIds ? JSON.parse(runningIds) : []
+
+          ans.data.data.map(item => {
+            if (runningIds.includes(item._id))
+              item.is_running = true;
+            else
+              item.is_running = false;
+          })
+
           resolve(ans.data.data)
         } else {
           reject(ans.data.message)
@@ -208,7 +246,7 @@ const ListAll = (props) => {
 
   const deleteCall = (data) => {
     return new Promise((resolve, reject) => {
-      Axios.post('organization/delete', data).then(ans => {
+      Axios.post('user/delete', data).then(ans => {
         if (ans.data.status) {
           resolve(ans.data.message)
         } else {
@@ -220,149 +258,97 @@ const ListAll = (props) => {
     })
   }
 
-  const selectRowClick = async (rowData) => {
-    if (org && org._id === rowData._id) {
-      showMessage('warning', 'Already Selected');
-      return;
-    }
-    dispatch(setSelectedOrg(rowData))
-  }
-
-  const deleteRowClick = async (rowData) => {
-    if (org && org._id === rowData._id) {
-      showMessage('warning', `Can't Delete Selected Organization`);
-      return;
-    }
-
+  const deleteMultiRow = async () => {
     MySwal.fire({
       title: 'Are you sure?',
-      text: "Do You Want To Remove This Organization",
+      text: "Do You Want To Remove All Selected Tests",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, Delete it !',
+      confirmButtonText: 'Yes, Delete All !',
       cancelButtonText: 'No, cancel !',
       reverseButtons: true,
     }).then(async result => {
       if (result.value) {
         try {
-
-          const result = await deleteCall({ organization_id: rowData._id })
-          let user = authUser;
-          let orgs = user.organizations;
-          user.organizations = orgs.filter(item => item._id !== rowData._id)
-          dispatch(AuhMethods.basic.updateUser(user))
-          MySwal.fire('Success', result, 'success');
-          setDialogState(prevState => ({ ...prevState, refreshData: true }))
+          setBusy(true)
+          let dataRows = selectedRows;
+          for (let x = 0; x < dataRows.length; x++) {
+            await deleteCall({ user_id: dataRows[x]._id })
+            setRefereshData(true)
+          }
+          setBusy(false)
+          MySwal.fire('Success', "Successfully Remove All Selected Tests", 'success');
         } catch (e) {
+          setBusy(false)
           MySwal.fire('Error', e, 'error');
         }
       }
     });
   }
 
-  const handlePopoverOpen = (event, rowData) => {
-    setMoreOptionsByRowData(rowData)
-    setAnchorEl(event.currentTarget);
-  };
-
-  const setMoreOptionsByRowData = (row) => {
-    const tempData = [];
-    tempData.push(
-      <MenuItem onClick={(e) => {
-        handlePopoverClose()
-        selectRowClick(row)
-      }}>
-        <Done /> &nbsp; Select
-      </MenuItem>
-    )
-
-    tempData.push(
-      <MenuItem onClick={(e) => {
-        handlePopoverClose()
-        deleteRowClick(row)
-      }}>
-        <Delete /> &nbsp; Delete
-      </MenuItem>
-    )
-    setMoreOptions(tempData);
-  }
-
-  const handlePopoverClose = () => {
-    setAnchorEl(null);
-  };
-
-  const actions = [
-    row => (
-      {
-        icon: () => <MoreVert style={{ color: blue[500] }} />,
-        className: classes.actionBlueButton,
-        tooltip: 'Show More Options',
-        onClick: handlePopoverOpen
-      }
-    ),
-  ]
-
   if (dialogState.refreshData) {
     tableRef.current.onQueryChange()
     setDialogState(prevState => ({ ...prevState, refreshData: false }))
+    setSelectedRows([])
   }
 
   if (refereshData) {
     tableRef.current.onQueryChange()
     setRefereshData(false);
+    setSelectedRows([])
   }
-
-  const showMessage = (icon, text) => {
-    Toast.fire({
-      icon,
-      title: text
-    });
-  }
-  const typeArr = [
-    { name: 'All Organizations', value: 0 },
-    { name: 'My Organizations', value: 1 },
-    { name: 'Shared With Me', value: 2 },
-  ]
 
   return (
-    <PageContainer heading="" breadcrumbs={breadcrumbs} >
-      <div style={{ marginTop: "-5%" }}>
-        <Box display='flex' flexDirection='row' justifyContent='end' alignItems={'center'}>
-          <TextField
-            id="outlined-select-currency"
-            select
-            label="Select Status"
-            margin='normal'
-            style={{ width: '20%' }}
-            name='date_status'
-            value={type}
-            onChange={(e) => {
-              e.preventDefault();
-              let { value } = e.target;
-              setType(value)
-              tableRef.current.onQueryChange()
-            }}
-            variant="outlined" >
-            {
-              typeArr.map(role => (
-                <MenuItem key={role.value} value={role.value}>
-                  {role.name}
-                </MenuItem>
-              ))
+    <div>
+      <PageContainer heading="" breadcrumbs={breadcrumbs}>
+        <br />
+        <div style={{ marginTop: "-6%" }}>
+          <Box display='flex' flexDirection='row' justifyContent='end' alignItems="center" >
+            {selectedRows.length > 0 &&
+              <Fade right opposite cascade >
+                <Tooltip
+                  title={"Delete Selected Members"}
+                >
+                  <IconButton size="medium" color="default" aria-label="add" onClick={() => {
+                    deleteMultiRow()
+                  }} disabled={busy}>
+                    <Delete style={{ color: 'red' }} />
+                  </IconButton>
+                </Tooltip>
+              </Fade>
             }
-          </TextField>
-          &nbsp;&nbsp;
-          <Button style={{ height: 40 }} type='button' variant="contained" color="primary" onClick={() => { setShowCreateDial(true) }}>
-            Add Organization
-          </Button>
-        </Box>
+            {selectedRows.length === 1 &&
+              <Fade right opposite cascade >
+                <Tooltip
+                  title={"Edit Member"}
+                >
+                  <IconButton size="medium" color="default" aria-label="add" onClick={() => {
+                    setShowEdit(true)
+                  }} disabled={busy}>
+                    <Edit style={{ color: 'black' }} />
+                  </IconButton>
+                </Tooltip>
+              </Fade>
+            }
+
+            <Tooltip
+              title={"Add New Member"}
+            >
+              <IconButton size="medium" color="default" aria-label="add" onClick={() => { setShowCreateDial(true) }}>
+                <AiOutlineUserAdd style={{ color: 'black' }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </div>
         <br />
         <MaterialTable
           tableRef={tableRef}
           icons={tableIcons}
-          title="Organizations List"
+          title="Members List"
           columns={columns}
-          actions={actions}
+          onSelectionChange={(rows) => {
+            setSelectedRows(rows);
+          }}
           data={async (query) => {
             try {
               var { orderBy, orderDirection, page, pageSize, search } = query;
@@ -371,7 +357,7 @@ const ListAll = (props) => {
                 resolve({
                   data,
                   page: query.page,
-                  totalCount: data.count //? state.totalAssociations : 5//state.totalAssociations
+                  totalCount: data.length //? state.totalAssociations : 5//state.totalAssociations
                 })
               })
             } catch (e) {
@@ -387,7 +373,9 @@ const ListAll = (props) => {
           page={1}
 
           options={{
-            actionsColumnIndex: -1,
+            // actionsColumnIndex: -1,
+            selection: true,
+            showSelectAllCheckbox: true,
             draggable: false,
             sorting: false,
             headerStyle: {
@@ -398,48 +386,20 @@ const ListAll = (props) => {
               hover: blue[500]
             },
             rowStyle: (rowData, index) => ({
-              backgroundColor: (index % 2 === 0) ? grey[50] : '#FFF',
+              backgroundColor: (selectedRows.includes(rowData)) ? '#EEE' : '#FFF',
               padding: 10
             }),
-            exportMenu: [{
-              label: 'Export PDF',
-              exportFunc: (cols, datas) => ExportPdf(cols, datas, 'List All Users ' + moment().format('DD-MM-YYYY'))
-            }, {
-              label: 'Export CSV',
-              exportFunc: (cols, datas) => ExportCsv(cols, datas, 'List All Users ' + moment().format('DD-MM-YYYY'))
-            }],
             showFirstLastPageButtons: true,
-            pageSize: 20,
+            pageSize: 10,
             padding: 'default',
-            pageSizeOptions: [20, 50, 100],
+            pageSizeOptions: [20, 10, 50, 100],
           }}
         />
 
-        {open && (
-          <Popover
-            open={open}
-            anchorEl={anchorEl}
-            container={anchorEl}
-            onClose={handlePopoverClose}
-            anchorOrigin={{
-              vertical: 'center',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'center',
-              horizontal: 'right',
-            }}>
-            <Paper elevation={8}>
-              <MenuList>
-                {moreOptions}
-              </MenuList>
-            </Paper>
-          </Popover>
-        )}
-
         {showCreateDial && <AddNew hideDialog={setShowCreateDial} setRefereshData={setRefereshData} />}
-      </div>
-    </PageContainer>
+        {showEdit && <EditUser hideDialog={setShowEdit} setRefereshData={setRefereshData} formdata={selectedRows[0]} />}
+      </PageContainer >
+    </div >
   );
 };
 

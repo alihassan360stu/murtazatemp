@@ -63,5 +63,27 @@ export default {
         PS: 9,
         DISPOSAL_MASTER: 10
     },
-    SCREENSHOT_URL: window.location.origin + '/api/screenshots/'
+    SCREENSHOT_URL: window.location.origin + '/api/screenshots/',
+    PERMISSIONS: {
+        "create-organization": false,
+        "edit-organization": false,
+        "delete-organization": false,
+        "list-organization": false,
+        "list-group": false,
+        "create-group": false,
+        "edit-group": false,
+        "delete-group": false,
+        "list-schedule": false,
+        "create-schedule": false,
+        "edit-schedule": false,
+        "delete-schedule": false,
+        "create-test": false,
+        "edit-test": false,
+        "delete-test": false,
+        "run-test": false,
+        "list-test": false,
+        "list-test-history": false,
+        "add-test-group": false,
+        "change-test-group": false,
+    }
 }

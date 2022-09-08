@@ -14,28 +14,27 @@ import PageContainer from '@jumbo/components/PageComponents/layouts/PageContaine
 const MySwal = withReactContent(Swal);
 
 const initalPermissionsState = {
-    cro: false,
-    psrms: false,
-    hotel_eye: false,
-    hr: false,
-    dl: false,
+    "create-organization": false,
+    "edit-organization": false,
+    "delete-organization": false,
+    "list-organization": false,
+    "list-group": false,
+    "create-group": false,
+    "edit-group": false,
+    "delete-group": false,
+    "list-schedule": false,
+    "create-schedule": false,
+    "edit-schedule": false,
+    "delete-schedule": false,
+    "create-test": false,
+    "edit-test": false,
+    "delete-test": false,
+    "run-test": false,
+    "list-test": false,
+    "list-test-history": false,
+    "add-test-group": false,
+    "change-test-group": false,
 
-    tenant: false,
-    ctag: false,
-    cfms: false,
-    cri: false,
-    one_to_one: false,
-    fir_copy: false,
-
-    aclc: false,
-    excise: false,
-    cro_facial: false,
-    subscriber: false,
-    tasdeeq: false,
-    verisys: false,
-    save_log: true,
-    hidden: false,
-    verisys_limit_per_day: 0,
 }
 
 const Toast = MySwal.mixin({
@@ -89,11 +88,7 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-
-const PermissionsSelect = ({ dialogState, setDialogState }) => {
-    const [state, setState] = useState(initalPermissionsState)
-    const [busy, setBusy] = useState(true);
-    const { authUser } = useSelector(({ auth }) => auth);
+const PermissionsSelect = ({ state, setState, mainPerms, setMainPerms, setDialogState, busy,handleChange }) => {
     const classes = useStyles();
 
     const showMessage = (icon, text, title) => {
@@ -103,42 +98,14 @@ const PermissionsSelect = ({ dialogState, setDialogState }) => {
         });
     }
 
-    const handleChange = event => {
-        try {
-            var { name, value, checked } = event.target
-            if (name === 'verisys_limit_per_day') {
-                setState(prevState => ({ ...prevState, [name]: value }));
-            } else {
-                setState(prevState => ({ ...prevState, [name]: checked }));
-            }
-        } catch (e) {
-
-        }
-    };
+    
 
     const getPermissions = () => {
-        Axios.post(authUser.api_url + '/get-user-permissions', { user_id: dialogState.rowData._id }).then(ans => {
+        Axios.post('/permission').then(ans => {
             setBusy(false)
             if (ans.data.status) {
-                setState(prevState => ({ ...prevState, ...ans.data.data }))
+                setMainPerms(prevState => ({ ...prevState, ...ans.data.data }))
             } else {
-                showMessage('error', ans.data.message);
-            }
-        }).catch(e => {
-            setBusy(false)
-            showMessage('error', e);
-        })
-    }
-
-    const updatePermissions = () => {
-        Axios.post(authUser.api_url + '/update-user-permissions', { user_id: dialogState.rowData._id, permissions: JSON.stringify(state) }).then(ans => {
-            if (ans.data.status) {
-                showMessage('success', ans.data.message);
-                setTimeout(() => {
-                    setDialogState(prevState => ({ ...prevState, showPerm: false }))
-                }, 2000);
-            } else {
-                setBusy(false)
                 showMessage('error', ans.data.message);
             }
         }).catch(e => {
@@ -161,17 +128,7 @@ const PermissionsSelect = ({ dialogState, setDialogState }) => {
     }
 
     const validate = () => {
-        try {
-            const { verisys, verisys_limit_per_day } = state;
-            if (verisys && Number(verisys_limit_per_day) < 1) {
-                showMessage('error', 'If Verisys Is Allowed So Limit Cannot Be Less Than 1');
-                return false;
-            }
-            return true;
-        } catch (e) {
-            showMessage('error', e)
-            return false;
-        }
+        return true;
     }
 
     const handleClose = (e) => {
@@ -199,7 +156,7 @@ const PermissionsSelect = ({ dialogState, setDialogState }) => {
                     <CmtCardContent >
                         <div>
                             <Box className={classes.pageTitle} fontSize={{ xs: 15, sm: 15 }}>
-                                Update Permissions
+                                Select Permissions
                             </Box>
                         </div>
                         <Divider />
@@ -222,35 +179,7 @@ const PermissionsSelect = ({ dialogState, setDialogState }) => {
                                             label="PSRMS"
                                         />
 
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.ctag} onChange={handleChange} name="ctag" disabled={busy} />}
-                                            label="CTAC"
-                                        />
 
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.cfms} onChange={handleChange} name="cfms" disabled={busy} />}
-                                            label="CFMS"
-                                        />
-
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.fir_copy} onChange={handleChange} name="fir_copy" disabled={busy} />}
-                                            label="FIR Copy"
-                                        />
-
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.tasdeeq} onChange={handleChange} name="tasdeeq" color="primary" disabled={busy} />}
-                                            label="Tasdeeq"
-                                        />
-
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.save_log} onChange={handleChange} name="save_log" disabled={busy} />}
-                                            label="Save Log"
-                                        />
-
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.hidden} onChange={handleChange} name="hidden" disabled={busy} />}
-                                            label="Hide In Heirarchy"
-                                        />
                                     </FormGroup>
 
                                     <FormGroup style={{ width: '100%' }}>
@@ -269,61 +198,7 @@ const PermissionsSelect = ({ dialogState, setDialogState }) => {
                                             label="EDL"
                                         />
 
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.tenant} onChange={handleChange} name="tenant" color="primary" disabled={busy} />}
-                                            label="Tenant &nbsp; EMP"
-                                        />
-
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.aclc} onChange={handleChange} name="aclc" color="primary" disabled={busy} />}
-                                            label="ACLC"
-                                        />
-
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.excise} onChange={handleChange} name="excise" color="primary" disabled={busy} />}
-                                            label="Excise"
-                                        />
-
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.cro_facial} onChange={handleChange} name="cro_facial" color="primary" disabled={busy} />}
-                                            label="CRO Facial"
-                                        />
-
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.subscriber} onChange={handleChange} name="subscriber" color="primary" disabled={busy} />}
-                                            label="Subscriber"
-                                        />
-
-                                        <FormControlLabel
-                                            control={<Checkbox checked={state.verisys} onChange={handleChange} name="verisys" disabled={busy} />}
-                                            label="Verisys"
-                                        />
-
-                                        <TextField
-                                            type="text"
-                                            label={'Verisys Limit/Day'}
-                                            fullWidth
-                                            // inputProps={{ pattern: pattern }}
-                                            name="verisys_limit_per_day"
-                                            value={state.verisys_limit_per_day}
-                                            margin="normal"
-                                            onChange={handleChange}
-                                            variant="outlined"
-                                            required
-                                            disabled={busy || !state.verisys}
-                                        />
-
                                     </FormGroup>
-                                </Box>
-
-                                <Box mb={2}>
-                                    <Divider />
-                                    <Button style={{ marginTop: 10 }} type='submit' variant="contained" color="primary" disabled={busy}>
-                                        Update
-                                    </Button>
-                                    <Button style={{ marginTop: 10, marginLeft: 20 }} type='button' variant="contained" color="primary" disabled={busy} onClick={handleClose}>
-                                        Cancel
-                                    </Button>
                                 </Box>
                             </form>
                         </Box>

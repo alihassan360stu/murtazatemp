@@ -1,35 +1,29 @@
-import React, { useState, forwardRef, createRef } from 'react';
-import { Box, MenuItem, Button, TextField } from '@material-ui/core';
-import { MenuList, Paper, Popover } from '@material-ui/core';
+import React, { useState, forwardRef, useEffect, createRef } from 'react';
+import { Box, Button, MenuItem, Chip, Divider } from '@material-ui/core';
 
 import { lighten, makeStyles } from '@material-ui/core/styles';
-import { blue, grey } from '@material-ui/core/colors';
-import { useSelector } from 'react-redux';
+import { blue, green, grey, red } from '@material-ui/core/colors';
 
 import PageContainer from '@jumbo/components/PageComponents/layouts/PageContainer';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import Axios from 'axios';
-import qs from 'qs';
 
 import {
   AddBox, ArrowDownward, Check, ChevronLeft,
-  ChevronRight, Clear, DeleteOutline, Edit,
+  ChevronRight, Clear, DeleteOutline, Edit, Comment,
   FilterList, FirstPage, LastPage, Remove, SaveAlt, Search, ViewColumn,
-  MoreVert, Done, Delete
-}
-  from '@material-ui/icons';
+} from '@material-ui/icons';
 
 import MaterialTable from '@material-table/core';
 import { withStyles } from '@material-ui/styles';
-// import EditDialog from './EditDialog';
 import { ExportCsv, ExportPdf } from '@material-table/exporters';
 import moment from 'moment';
-import AddNew from './AddNew';
-import { useDispatch } from 'react-redux';
-import { setSelectedOrg } from '@redux/actions';
-import { AuhMethods } from '@services/auth';
-
+import { useSelector } from 'react-redux';
+import { VscEdit, TbLockOpen, IoIosCloseCircle, RiDeleteBin7Line, BsCheck2Square, FiCheckCircle } from 'react-icons/all'
+import AddNew from './AddNew'
+import EditForm from './Edit'
+var crypto = require('crypto');
 const MySwal = withReactContent(Swal);
 
 const breadcrumbs = [];
@@ -45,9 +39,9 @@ const useStyles = makeStyles(theme => ({
     },
   },
   root: {
-    maxWidth: '100vh',
-    padding: '2%',
-    margin: '0 auto',
+    // maxWidth: '100vh',
+    // padding: '2%',
+    // margin: '0 auto',
     backgroundColor: lighten(theme.palette.background.paper, 0.1),
   },
   backdrop: {
@@ -71,12 +65,12 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-// const initalState = {
-//   totalData: 0,
-//   is_loading: true,
-//   showDialog: false,
-//   rowData: {}
-// }
+const initalState = {
+  totalData: 0,
+  is_loading: true,
+  showDialog: false,
+  rowData: {}
+}
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -119,30 +113,23 @@ const Toast = MySwal.mixin({
 });
 
 
-const initialDialogState = {
-  show: false,
-  refreshData: false,
-  showPerm: false,
-  rowData: {}
-}
+const initState = [
+  { name: 'Today', value: 1 },
+  { name: 'Yesterday', value: 2 },
+  { name: 'Last 7 Days', value: 3 },
+  { name: 'Last 30 Days', value: 4 },
+]
 
 var tableRef = createRef();
 
 const ListAll = (props) => {
-  const { theme } = props;
+  const { theme, match } = props;
   const classes = useStyles();
-  const dispatch = useDispatch();
-  const [dialogState, setDialogState] = useState(initialDialogState);
-  const [refereshData, setRefereshData] = useState(false);
-  const { authUser } = useSelector(({ auth }) => auth);
-  const [type, setType] = useState(0)
-
-  // const [rowData, setRowData] = useState(undefined);
-  const [showCreateDial, setShowCreateDial] = useState(false);
+  const [rowData, setRowData] = useState(false);
+  const [data, setData] = useState(null);
   const org = useSelector(({ org }) => org);
-  const [moreOptions, setMoreOptions] = useState([]);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  const [showCreateDial, setShowCreateDial] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
 
   const columns = [
     {
@@ -157,7 +144,7 @@ const ListAll = (props) => {
     {
       title: 'Name', field: 'name', render: (rowData) => {
         return (
-          <div>
+          <div style={{ display: 'flex' }}>
             <h5>{rowData.name}</h5>
           </div>
         )
@@ -168,48 +155,33 @@ const ListAll = (props) => {
         return (
           <div>
             <h5>{rowData.description}</h5>
+            {/* <h5>{moment(rowData.start_duration).utc().local().format('D/MM/YYYY hh:mm a')}</h5> */}
           </div>
         )
       }
     },
   ]
 
-  const getData = (params) => {
+  const getData = (data) => {
     return new Promise((resolve, reject) => {
-
-      let { page, pageSize, search } = params
-      let data = qs.stringify({
-        search,
-        page,
-        pageSize,
-        status: 1,
-        type
-      });
-
-      var config = {
-        method: 'post',
-        url: '/organization',
-        data: data
-      };
-
-      Axios(config).then(ans => {
-        console.log(ans.data)
+      Axios.post('role', data).then(ans => {
         if (ans.data.status) {
+          setData(ans.data.data);
           resolve(ans.data.data)
         } else {
           reject(ans.data.message)
         }
       }).catch(e => {
-        console.log(e)
         reject(e)
       })
     })
   }
 
-  const deleteCall = (data) => {
+  const blockCall = (data) => {
     return new Promise((resolve, reject) => {
-      Axios.post('organization/delete', data).then(ans => {
+      Axios.post('schedule/change-status', data).then(ans => {
         if (ans.data.status) {
+          tableRef.current.onQueryChange()
           resolve(ans.data.message)
         } else {
           reject(ans.data.message)
@@ -220,23 +192,52 @@ const ListAll = (props) => {
     })
   }
 
-  const selectRowClick = async (rowData) => {
-    if (org && org._id === rowData._id) {
-      showMessage('warning', 'Already Selected');
-      return;
-    }
-    dispatch(setSelectedOrg(rowData))
+  const deleteCall = (data) => {
+    return new Promise((resolve, reject) => {
+      Axios.post('role/delete', data).then(ans => {
+        if (ans.data.status) {
+          tableRef.current.onQueryChange()
+          resolve(ans.data.message)
+        } else {
+          reject(ans.data.message)
+        }
+      }).catch(e => {
+        reject(e)
+      })
+    })
   }
 
-  const deleteRowClick = async (rowData) => {
-    if (org && org._id === rowData._id) {
-      showMessage('warning', `Can't Delete Selected Organization`);
-      return;
-    }
+  const editRowClick = async (event, rowData) => {
+    event.preventDefault();
+    setRowData(rowData);
+    setTimeout(() => {
+      setShowEdit(true)
+    }, 100);
+    // MySwal.fire({
+    //   title: 'Are you sure?',
+    //   text: "Do You Want To " + (rowData.is_active ? 'Block' : 'Unblock') + " This Schedule",
+    //   icon: 'warning',
+    //   showCancelButton: true,
+    //   confirmButtonText: rowData.is_active ? 'Yes, Block it !' : 'Yes, Unblock It !',
+    //   cancelButtonText: 'No, cancel !',
+    //   reverseButtons: true,
+    // }).then(async result => {
+    //   if (result.value) {
+    //     try {
+    //       const result = await blockCall({ schedule_id: rowData._id, is_active: rowData.is_active ? 0 : 1 })
+    //       MySwal.fire('Success', result, 'success');
+    //     } catch (e) {
+    //       MySwal.fire('Error', e, 'error');
+    //     }
+    //   }
+    // });
+  }
 
+  const deleteRowClick = async (event, rowData) => {
+    event.preventDefault();
     MySwal.fire({
       title: 'Are you sure?',
-      text: "Do You Want To Remove This Organization",
+      text: "Do You Want To Delete This Role",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, Delete it !',
@@ -245,14 +246,8 @@ const ListAll = (props) => {
     }).then(async result => {
       if (result.value) {
         try {
-
-          const result = await deleteCall({ organization_id: rowData._id })
-          let user = authUser;
-          let orgs = user.organizations;
-          user.organizations = orgs.filter(item => item._id !== rowData._id)
-          dispatch(AuhMethods.basic.updateUser(user))
+          const result = await deleteCall({ role_id: rowData._id })
           MySwal.fire('Success', result, 'success');
-          setDialogState(prevState => ({ ...prevState, refreshData: true }))
         } catch (e) {
           MySwal.fire('Error', e, 'error');
         }
@@ -260,107 +255,37 @@ const ListAll = (props) => {
     });
   }
 
-  const handlePopoverOpen = (event, rowData) => {
-    setMoreOptionsByRowData(rowData)
-    setAnchorEl(event.currentTarget);
-  };
-
-  const setMoreOptionsByRowData = (row) => {
-    const tempData = [];
-    tempData.push(
-      <MenuItem onClick={(e) => {
-        handlePopoverClose()
-        selectRowClick(row)
-      }}>
-        <Done /> &nbsp; Select
-      </MenuItem>
-    )
-
-    tempData.push(
-      <MenuItem onClick={(e) => {
-        handlePopoverClose()
-        deleteRowClick(row)
-      }}>
-        <Delete /> &nbsp; Delete
-      </MenuItem>
-    )
-    setMoreOptions(tempData);
-  }
-
-  const handlePopoverClose = () => {
-    setAnchorEl(null);
-  };
-
   const actions = [
-    row => (
-      {
-        icon: () => <MoreVert style={{ color: blue[500] }} />,
-        className: classes.actionBlueButton,
-        tooltip: 'Show More Options',
-        onClick: handlePopoverOpen
-      }
-    ),
-  ]
-
-  if (dialogState.refreshData) {
-    tableRef.current.onQueryChange()
-    setDialogState(prevState => ({ ...prevState, refreshData: false }))
-  }
-
-  if (refereshData) {
-    tableRef.current.onQueryChange()
-    setRefereshData(false);
-  }
-
-  const showMessage = (icon, text) => {
-    Toast.fire({
-      icon,
-      title: text
-    });
-  }
-  const typeArr = [
-    { name: 'All Organizations', value: 0 },
-    { name: 'My Organizations', value: 1 },
-    { name: 'Shared With Me', value: 2 },
-  ]
+    row => ({
+      icon: () => <VscEdit style={{ color: 'black' }} size={20} />,
+      className: '',
+      tooltip: `Edit Role`,
+      onClick: editRowClick,
+    }),
+    row => ({
+      icon: () => <RiDeleteBin7Line style={{ color: red[500] }} size={20} />,
+      className: '',
+      tooltip: `Delete Role`,
+      onClick: deleteRowClick,
+    }),
+  ];
 
   return (
-    <PageContainer heading="" breadcrumbs={breadcrumbs} >
-      <div style={{ marginTop: "-5%" }}>
+    <PageContainer heading="" breadcrumbs={breadcrumbs}>
+      <div style={{ marginTop: "-6%" }}>
+        <br />
+        <h2>Schedules</h2>
+        <br />
         <Box display='flex' flexDirection='row' justifyContent='end' alignItems={'center'}>
-          <TextField
-            id="outlined-select-currency"
-            select
-            label="Select Status"
-            margin='normal'
-            style={{ width: '20%' }}
-            name='date_status'
-            value={type}
-            onChange={(e) => {
-              e.preventDefault();
-              let { value } = e.target;
-              setType(value)
-              tableRef.current.onQueryChange()
-            }}
-            variant="outlined" >
-            {
-              typeArr.map(role => (
-                <MenuItem key={role.value} value={role.value}>
-                  {role.name}
-                </MenuItem>
-              ))
-            }
-          </TextField>
-          &nbsp;&nbsp;
           <Button style={{ height: 40 }} type='button' variant="contained" color="primary" onClick={() => { setShowCreateDial(true) }}>
-            Add Organization
+            Create Policy
           </Button>
         </Box>
         <br />
         <MaterialTable
           tableRef={tableRef}
           icons={tableIcons}
-          title="Organizations List"
+          title="Policies"
           columns={columns}
           actions={actions}
           data={async (query) => {
@@ -371,7 +296,7 @@ const ListAll = (props) => {
                 resolve({
                   data,
                   page: query.page,
-                  totalCount: data.count //? state.totalAssociations : 5//state.totalAssociations
+                  totalCount: data.length //? state.totalAssociations : 5//state.totalAssociations
                 })
               })
             } catch (e) {
@@ -399,7 +324,8 @@ const ListAll = (props) => {
             },
             rowStyle: (rowData, index) => ({
               backgroundColor: (index % 2 === 0) ? grey[50] : '#FFF',
-              padding: 10
+              // padding: 10,
+              height: 5,
             }),
             exportMenu: [{
               label: 'Export PDF',
@@ -414,31 +340,9 @@ const ListAll = (props) => {
             pageSizeOptions: [20, 50, 100],
           }}
         />
-
-        {open && (
-          <Popover
-            open={open}
-            anchorEl={anchorEl}
-            container={anchorEl}
-            onClose={handlePopoverClose}
-            anchorOrigin={{
-              vertical: 'center',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'center',
-              horizontal: 'right',
-            }}>
-            <Paper elevation={8}>
-              <MenuList>
-                {moreOptions}
-              </MenuList>
-            </Paper>
-          </Popover>
-        )}
-
-        {showCreateDial && <AddNew hideDialog={setShowCreateDial} setRefereshData={setRefereshData} />}
       </div>
+      {showCreateDial && <AddNew tableRef={tableRef} hideDialog={setShowCreateDial} />}
+      {showEdit && <EditForm tableRef={tableRef} hideDialog={setShowEdit} rowData={rowData}/>}
     </PageContainer>
   );
 };

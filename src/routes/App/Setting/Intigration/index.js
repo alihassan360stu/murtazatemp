@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Divider, Box, Card, CardHeader, Avatar, IconButton, CardMedia, CardContent, CardActions, Collapse, } from '@material-ui/core';
 import { Typography, Button } from '@mui/material';
-import BugReportIcon from '@material-ui/icons/BugReport';
 import PageContainer from '@jumbo/components/PageComponents/layouts/PageContainer';
+import BugReportIcon from '@material-ui/icons/BugReport';
 import { Link } from 'react-router-dom';
 import { lighten, makeStyles, alpha } from '@material-ui/core/styles';
 import { ExpandMore } from '@material-ui/icons';
@@ -26,8 +26,7 @@ const useStyles = makeStyles(theme => ({
         paddingTop: '56.25%', // 16:9,
         marginTop: '30',
 
-    },
-    hoverEffect:{
+    },    hoverEffect:{
         "&:hover": {
           boxShadow:"1px 1px 1px 1px ",
           cursor:"pointer"
@@ -156,7 +155,7 @@ const Intigration = () => {
                 </Box>
 
             }
-            {
+           {
                 buttonSelection === 2
                 &&
                 <Box display="flex" justifyContent="space-evenly" alignItems="center" width="50%" flexDirection="column">

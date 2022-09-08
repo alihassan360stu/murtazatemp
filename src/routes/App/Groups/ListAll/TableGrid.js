@@ -20,8 +20,6 @@ const styles = theme => ({
   },
   table: {
     width: '100%',
-    // temporary right-to-left patch, waiting for
-    // https://github.com/bvaughn/react-virtualized/issues/454
     '& .ReactVirtualized__Table__headerRow': {
       flip: false,
       paddingRight: theme.direction === 'rtl' ? '0 !important' : undefined,
@@ -46,7 +44,7 @@ const styles = theme => ({
   tableCell: {
     flex: 1,
     width: '100%',
-    color: 'black'
+    color: 'black',
   },
   tableCellWhite: {
     flex: 1,
@@ -152,6 +150,7 @@ const MuiVirtualizedTable2 = (props) => {
       <AutoSizer>
         {({ height, width }) => (
           <Table
+          // headerClassName={classes.header}
             height={height}
             width={width}
             rowHeight={rowHeight}

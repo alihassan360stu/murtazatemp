@@ -120,13 +120,21 @@ export default function ReactVirtualizedTable() {
         if (ans.data.status) {
           let tempData = ans.data.data;
           let groups = tempData.groups
+          console.log(ans.data.data);
+
           groups.map(item => {
             item.kind = 'group'
+            item.test=`${Math.floor(tempData.tests.length)}  Tests`;
+            // item.executed="hassan";
+            // item.Date="2/2/2002";
             item.name = { name: item.name, icon: 1, type: 2 }
           })
           let tests = tempData.tests
           tests.map(item => {
             item.kind = 'test'
+            // item.test="Passed 20 / Failed 30";
+            // item.executed="hassan";
+            // item.Date="2/2/2002";
             item.name = { name: item.name, icon: 2, type: 1 }
           })
           setData(groups.concat(tests));
@@ -159,11 +167,11 @@ export default function ReactVirtualizedTable() {
     if (parent) {
       let params = {
         search,
-        parent,
+        parent:org.root===parent?0:parent,
         org_id: org._id,
         pageSize: 1000,
         page: 1,
-        status: "1"
+        status:1
       }
       getData(params);
     }
@@ -504,11 +512,12 @@ export default function ReactVirtualizedTable() {
           rowCount={data.length}
           selectedIdx={selectedIdx}
           rowHeight={40}
-          headerHeight={30}
+          headerHeight={50}
           busy={busy}
           reset={reset}
           setReset={setReset}
           onRowClick={({ event, index, rowData }) => {
+            console.log("gggggggggg",data)
             let clicks = event.detail;
             if (clicks == 1) {
               let tempArr = [];
@@ -550,8 +559,25 @@ export default function ReactVirtualizedTable() {
               width: "100%"
             },
             {
+              label: 'Last Executed By',
+              dataKey: 'last_executed_by',
+              width: "100%"
+            },
+            {
+              label: 'Last Executed',
+              dataKey: 'last_executed_at',
+              width: "100%"
+            },
+            {
+              label: 'Test In Group',
+              dataKey: 'test',
+              width: "100%"
+            },
+            {
               label: 'Kind',
               dataKey: 'kind',
+              width: "100%"
+              
             },
           ]}
         />

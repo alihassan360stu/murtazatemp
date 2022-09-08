@@ -13,6 +13,10 @@ import TestHistory from './TestHistory';
 import RunDetails from './RunDetails';
 import Schedules from './Schedules';
 import TestRuns from './TestRuns';
+import Members from "./Members"
+import Policies from "./Policies"
+import APITesting from "./ApiTesting"
+
 import { useEffect } from 'react';
 
 const Routes = () => {
@@ -30,8 +34,12 @@ const Routes = () => {
         tempRoutes.push(<Route path={requestedUrl + `tests`} component={ListTests} />)
         tempRoutes.push(<Route path={requestedUrl + `runs`} component={TestRuns} />)
         tempRoutes.push(<Route path={requestedUrl + `groups`} component={ListGroups} />)
+        tempRoutes.push(<Route path={requestedUrl + `members`} component={Members} />)
         tempRoutes.push(<Route path={requestedUrl + `schedules`} component={Schedules} />)
+        tempRoutes.push(<Route path={requestedUrl + `policies`} component={Policies} />)
         tempRoutes.push(<Route path={requestedUrl + `testruns/:id`} component={TestHistory} />)
+        tempRoutes.push(<Route path={requestedUrl + `apitesting`} component={APITesting} />)
+       
         tempRoutes.push(<Route path={requestedUrl + `rundetail/:id`} component={RunDetails} />)
       }
       setRoutes(tempRoutes)
