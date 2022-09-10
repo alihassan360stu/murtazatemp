@@ -1,28 +1,20 @@
 import React, { useState, forwardRef, createRef } from 'react';
-import { Divider, Box, Typography, FormControlLabel, Checkbox, Button, TextField, Avatar } from '@material-ui/core';
+import { Box, Typography, Tooltip, Fab } from '@material-ui/core';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import MaterialTable from '@material-table/core';
 import {
   AddBox, ArrowDownward, Check, ChevronLeft,
   ChevronRight, Clear, DeleteOutline, Edit,
-  FilterList, FirstPage, LastPage, Remove, SaveAlt, Search, ViewColumn,
-  MoreVert, FileCopy, ControlPointDuplicate, Delete, PlayArrow, Add, History,
-}
-  from '@material-ui/icons';
+  FilterList, FirstPage, LastPage, Remove, SaveAlt, Search, ViewColumn, Delete,
+} from '@material-ui/icons';
+import ReportSending from "./SendReport"
 import Axios from 'axios';
-import { makeStyles } from '@material-ui/core/styles';
 import qs from 'qs';
-import { blue, green, orange, red } from '@material-ui/core/colors';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    flexGrow: 1,
-    maxWidth: '100%',
-    backgroundColor: theme.palette.background.paper,
-  }
-}))
-
+import { useSelector } from 'react-redux';
+import { blue } from '@material-ui/core/colors';
+import { IoIosTimer } from 'react-icons/all'
+import AddIcon from '@material-ui/icons/Add';
 
 const MySwal = withReactContent(Swal);
 
@@ -46,6 +38,27 @@ const tableIcons = {
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
 };
 
+const Toast = MySwal.mixin({
+
+  target: '#myTest',
+  customClass: {
+    container: {
+      position: 'absolute',
+      zIndex: 999999999,
+    }
+  },
+  toast: true,
+  position: 'top',
+
+  showConfirmButton: false,
+  timer: 2000,
+  timerProgressBar: true,
+  onOpen: toast => {
+    toast.addEventListener('mouseenter', Swal.stopTimer);
+    toast.addEventListener('mouseleave', Swal.resumeTimer);
+  },
+});
+
 const initialDialogState = {
   show: false,
   refreshData: false,
@@ -54,43 +67,82 @@ const initialDialogState = {
 }
 var tableRef = createRef();
 const Report = (props) => {
+  const org = useSelector(({ org }) => org);
   const [refereshData, setRefereshData] = useState(false);
-  const [isChecked, setIsChecked] = useState(true);
   const [dialogState, setDialogState] = useState(initialDialogState);
-  const [selectedRows, setSelectedRows] = useState([]);
-  const { theme } = props;
+  const [addEmail, setAddEmail] = useState(false);
+  const showMessage = (icon, text, title) => {
+    Toast.fire({
+      icon,
+      title: text
+    });
+  }
   const columns = [
+    // {
+    //   title: 'S#', width: "10%", field: 'index', render: (rowData) => {
+    //     return (
+    //       <div>
+    //         <Typography variant="h5">
+    //           {
+    //             rowData.index
+    //           }
+    //         </Typography>
+    //       </div>
+    //     )
+    //   }
+    // },
     {
-      title: 'S#', width: "10%", field: 'index', render: (rowData) => {
+      title: 'Email', field: 'email', render: (rowData) => {
         return (
-          <div>
+
+          <Box display="flex" alignItems="center">
             <Typography variant="h5">
               {
-                rowData.index
+                rowData.email[0]
+              }
+            </Typography>
+          </Box>
+
+        )
+      }
+    },
+    {
+      title: 'Created At', field: 'created_at', render: (rowData) => {
+        return (
+          <div style={{ display: 'flex', alignItems: "center" }}>
+            <Typography variant="h5">
+
+              {
+                rowData.created_at
               }
             </Typography>
           </div>
         )
       }
     },
-
     {
-      title: 'User Name', field: 'username', render: (rowData) => {
+      title: 'Updated At', field: 'updated_at', render: (rowData) => {
         return (
+          <div style={{ display: 'flex', alignItems: "center" }}>
+            <Typography variant="h5">
 
-          <Box display="flex" alignItems="center">
-            {/* <Avatar style={{ backgroundColor: "blue", marginRight: "4%",textTransform:"uppercase" }}>{rowData.username[0]}</Avatar> */}
-            <Typography variant="h5">{rowData.username}
+              {
+                rowData.updated_at
+              }
             </Typography>
-          </Box>
+          </div>
         )
       }
     },
     {
-      title: 'Email Address', field: 'Email', render: (rowData) => {
+      title: 'Notify', field: 'notify', render: (rowData) => {
         return (
           <div style={{ display: 'flex', alignItems: "center" }}>
-            <Typography variant="h5">{rowData.email}</Typography>
+            <Typography variant="h5">
+              {
+                rowData.notify ? "On" : "Off"
+              }
+            </Typography>
           </div>
         )
       }
@@ -100,16 +152,12 @@ const Report = (props) => {
 
   const getData = (params) => {
     return new Promise((resolve, reject) => {
-      let { page, pageSize, search } = params
       let data = qs.stringify({
-        search,
-        page,
-        pageSize,
+        org_id: org._id
       });
-
       var config = {
         method: 'post',
-        url: '/user',
+        url: '/report',
         data: data
       };
 
@@ -136,6 +184,43 @@ const Report = (props) => {
     })
   }
 
+  const deleteCall = (data) => {
+    return new Promise((resolve, reject) => {
+      Axios.post('user/delete', data).then(ans => {
+        if (ans.data.status) {
+          resolve(ans.data.message)
+        } else {
+          reject(ans.data.message)
+        }
+      }).catch(e => {
+        reject(e)
+      })
+    })
+  }
+
+  const deleteMultiRow = async (selectedRows) => {
+    MySwal.fire({
+      title: 'Are you sure?',
+      text: "Do You Want To Remove All Selected Tests",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Delete All !',
+      cancelButtonText: 'No, cancel !',
+      reverseButtons: true,
+    }).then(async result => {
+      if (result.value) {
+        try {
+
+          await deleteCall({ user_id: selectedRows._id })
+          setRefereshData(true)
+          MySwal.fire('Success', "Successfully Remove All Selected Tests", 'success');
+        } catch (e) {
+          MySwal.fire('Error', e, 'error');
+        }
+      }
+    });
+  }
+
   if (dialogState.refreshData) {
     tableRef.current.onQueryChange()
     setDialogState(prevState => ({ ...prevState, refreshData: false }))
@@ -146,59 +231,86 @@ const Report = (props) => {
     setRefereshData(false);
   }
 
+  const validate = () => {
+    return true;
+  }
+
+  const submitRequest = (data) => {
+    var newData = { ...data, org_id: org._id }
+    try {
+      Axios.put('report', newData).then(result => {
+        result = result.data;;
+        if (result.status) {
+          showMessage('success', "Notify Change Successfully");
+          setRefereshData(true)
+        } else {
+          showMessage('error', result.message);
+        }
+      }).catch(e => {
+        showMessage('error', e);
+      })
+    } catch (e) {
+      showMessage('error', e);
+    }
+  }
+
+
+  const onSubmit = (e) => {
+    if (validate()) {
+      try {
+        if (org) {
+          const {email,notify}=e;
+          var checkNotify;
+          if (notify) {
+            checkNotify = false;
+          } else {
+            checkNotify = true
+          }
+
+          submitRequest({ email:email[0],notify:checkNotify})
+        } else {
+          MySwal.fire('Error', 'No Organization Selected', 'error');
+        }
+      } catch (e) {
+        MySwal.fire('Error', e, 'error');
+      }
+    }
+  }
+
 
   const actions = [
     row => ({
       icon: () => <Delete style={{ color: "red" }} />,
       //   className: classes.actionBlueButton,
       tooltip: "Delete",
-      onClick: () => { },
+      onClick: () => { deleteMultiRow(row) },
     }),
     row => ({
-      icon: () => <Edit style={{ color: blue[500] }} />,
-      //   className: classes.actionBlueButton,
-      tooltip: 'Detailed Information',
-      onClick: () => { },
+      icon: () => <IoIosTimer style={{ color: row.notify ? "green" : blue[500] }} />,
+      tooltip: 'Notify On / Off',
+      onClick: () => {console.log("row data ",row) ;onSubmit(row) },
     }),
   ];
 
 
   return (
     <Box width={'100%'}>
-      <Box mb="5vh">
-        <FormControlLabel checked={isChecked} control={<Checkbox />} label={'Send Monthly Reports To'} onChange={(e) => {
-          let { checked } = e.target
-          setIsChecked(checked)
-        }} />
-        <br />
-        <TextField
-          type="text"
-          label={'Email Address'}
-          name="email"
-          style={{ width: "30%" }}
-          margin="normal"
-          variant="outlined"
-          required
-          disabled={!isChecked}
-        />
-        <br />
-        <br />
-        <Button variant='contained' color='primary' disabled={!isChecked} onClick={(e) => {
-          MySwal.fire('Success', 'Settings Saved', 'success');
-        }}> Save </Button>
-      </Box>
+      <Box width={"100%"} display="flex" justifyContent={"flex-end"}>
+        <Tooltip title={"Create New Transaction"}>
 
+          <Fab color="primary" aria-label="add" onClick={() => { setAddEmail(true) }}>
+            <AddIcon style={{ color: "white" }} />
+          </Fab>
+
+        </Tooltip>
+      </Box>
       <br />
       <MaterialTable
         tableRef={tableRef}
         icons={tableIcons}
-        title="Users List"
+        title="Report List"
         columns={columns}
         actions={actions}
-        // data={[
-        //   { name: 'Ali Hassan', email: 'ali.hassan.stu@gmail', index: 1},
-        //   { name: 'google', email: 'google@gmail.com', index: 2},
-        // ]} 
         data={async (query) => {
           try {
             var { orderBy, orderDirection, page, pageSize, search } = query;
@@ -235,7 +347,6 @@ const Report = (props) => {
             hover: blue[500]
           },
           rowStyle: (rowData, index) => ({
-            backgroundColor: (selectedRows.includes(rowData)) ? '#EEE' : '#FFF',
             padding: 10
           }),
           showFirstLastPageButtons: true,
@@ -244,6 +355,8 @@ const Report = (props) => {
           pageSizeOptions: [20, 10, 50, 100],
         }}
       />
+
+      {addEmail && <ReportSending hideDialog={setAddEmail} setRefereshData={setRefereshData} />}
     </Box>
   );
 };

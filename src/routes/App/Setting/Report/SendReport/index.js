@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Box, Button, CircularProgress, Backdrop, Dialog } from '@material-ui/core';
 import { lighten, makeStyles, alpha } from '@material-ui/core/styles';
 import { useSelector } from 'react-redux';
@@ -11,10 +11,7 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import Axios from 'axios';
 import BasicForm from './BasicForm';
-import validator from 'validator';
-
 const MySwal = withReactContent(Swal);
-
 const useStyles = makeStyles(theme => ({
   root: {
     maxWidth: '100vh',
@@ -67,23 +64,15 @@ const Toast = MySwal.mixin({
 });
 
 
-const initalFormState = {
-  identifier: '',
-  role_id: -1,
-}
-
 const EditDialog = ({ hideDialog, setRefereshData }) => {
-  // dialogState
-  const classes = useStyles();
-  const [formState, setFormState] = useState(initalFormState);
-  const [busy, setBusy] = useState(false);
-  const [roles, setRoles] = useState([]);
   const org = useSelector(({ org }) => org);
-
-  const handleOnChangeTF = (e) => {
-    var { name, value } = e.target;
+  const classes = useStyles();
+  const [formState, setFormState] = useState({ email: "", notify: false, is_loading: false });
+  const handleClose = (e) => {
     e.preventDefault();
-    setFormState(prevState => ({ ...prevState, [name]: value }));
+    setTimeout(() => {
+      hideDialog(false)
+    }, 100);
   }
 
   const showMessage = (icon, text, title) => {
@@ -94,24 +83,14 @@ const EditDialog = ({ hideDialog, setRefereshData }) => {
   }
 
   const validate = () => {
-    let { identifier, role_id } = formState
-
-    if (role_id === -1) {
-      showMessage('error', 'Please Select A Role First', '')
-      return false;
-    }
-
-    if (!validator.isEmail(identifier)) {
-      showMessage('error', 'Invalid Email Address', '')
-      return false;
-    }
-
     return true;
   }
 
   const submitRequest = (data) => {
+    const tempData = data.email.split(",");
+    console.log("my name is ali hassan ",tempData)
     try {
-      Axios.post('invite/create', data).then(result => {
+      Axios.put('report', { ...data, tempData }).then(result => {
         result = result.data;;
         if (result.status) {
           showMessage('success', result.message);
@@ -122,6 +101,7 @@ const EditDialog = ({ hideDialog, setRefereshData }) => {
         } else {
           showMessage('error', result.message);
           setFormState(prevState => ({ ...prevState, is_loading: false }));
+
         }
       }).catch(e => {
         setFormState(prevState => ({ ...prevState, is_loading: false }));
@@ -132,15 +112,17 @@ const EditDialog = ({ hideDialog, setRefereshData }) => {
     }
   }
 
+
   const onSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
       try {
-        let { identifier, role_id } = formState
+        let { email, notify } = formState
+        setFormState({ ...formState, is_loading: true })
         if (org) {
-          setBusy(true)
-          let dataToSubmit = { identifier, role_id, org_id: org._id };
+          let dataToSubmit = { email, notify, org_id: org._id };
           submitRequest(dataToSubmit)
+
         } else {
           MySwal.fire('Error', 'No Organization Selected', 'error');
         }
@@ -149,33 +131,6 @@ const EditDialog = ({ hideDialog, setRefereshData }) => {
       }
     }
   }
-
-  const handleClose = (e) => {
-    e.preventDefault();
-    setTimeout(() => {
-      hideDialog(false)
-    }, 100);
-  }
-
-  const getRoles = () => {
-    try {
-      Axios.post('role', { search: '', page: 1, pageSize: 200 }).then(ans => {
-        if (ans.data.status) {
-          setRoles(ans.data.data);
-        } else {
-          showMessage('error', ans.data.message)
-        }
-      }).catch(e => {
-        showMessage('error', e)
-      })
-    } catch (error) {
-      showMessage('error', error && error.message ? error.message : 'SOMETHING WENT WRONG')
-    }
-  }
-
-  useEffect(() => {
-    getRoles();
-  }, [])
 
   return (
     <PageContainer heading="" breadcrumbs={[]}>
@@ -195,21 +150,32 @@ const EditDialog = ({ hideDialog, setRefereshData }) => {
           <CmtCardContent >
             <div>
               <Box className={classes.pageTitle} fontSize={{ xs: 15, sm: 15 }}>
-                Add Member
+                Reports
               </Box>
             </div>
             <Divider />
 
-            <form autoComplete="off" onSubmit={onSubmit}>
-              <Box mb={2}>
-                <BasicForm state={formState} handleOnChangeTF={handleOnChangeTF} roles={roles} busy={busy} />
-                <Divider />
+            <form autoComplete="off" onSubmit={(e) => {
+              e.preventDefault();
+              onSubmit(e)
+            }}>
+              <Box mb={2} position="relative">
+                {
+                  formState.is_loading && <CircularProgress style={{
+                    position: "absolute", left: "50%",
+                    top: "50%", transform: "translate(-50%,-50%)"
+                  }} color="secondary" />
+
+                }
+
+
+                <BasicForm state={formState} handleOnChangeTF={setFormState} />
                 <br />
                 <Divider />
-                <Button style={{ marginTop: 10 }} type='submit' variant="contained" color="primary" disabled={busy}>
-                  Add
+                <Button style={{ marginTop: 10 }} type='submit' variant="contained" color="primary">
+                  Save
                 </Button>
-                <Button style={{ marginTop: 10, marginLeft: 20 }} type='button' variant="contained" color="primary" disabled={busy} onClick={handleClose}>
+                <Button style={{ marginTop: 10, marginLeft: 20 }} type='button' variant="contained" color="primary" onClick={handleClose}>
                   Cancel
                 </Button>
               </Box>
@@ -217,9 +183,6 @@ const EditDialog = ({ hideDialog, setRefereshData }) => {
           </CmtCardContent>
         </CmtCard>
       </Dialog>
-      <Backdrop className={classes.backdrop} open={busy}>
-        <CircularProgress color="secondary" />
-      </Backdrop>
     </PageContainer>
   );
 };
