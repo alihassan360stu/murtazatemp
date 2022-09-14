@@ -1,6 +1,6 @@
 import React, { useState, forwardRef, createRef } from 'react';
-import { BoxTooltip, Typography, IconButton, Box, Tooltip, TextField, MenuItem } from '@material-ui/core';
-
+import { BoxTooltip, Typography, IconButton, Box, Tooltip, MenuItem, Fab } from '@material-ui/core';
+import {TextField} from '@mui/material'
 import { lighten, makeStyles } from '@material-ui/core/styles';
 import { blue, green, orange, red } from '@material-ui/core/colors';
 import { useSelector } from 'react-redux';
@@ -20,10 +20,11 @@ import {
   Delete, FileCopy, PlayArrow
 }
   from '@material-ui/icons';
+  import AddIcon from '@material-ui/icons/Add';
 
 import MaterialTable from '@material-table/core';
 import { withStyles } from '@material-ui/styles';
-import AddNew from "./AddNew"
+import AddNew from "./AddList"
 import EditUser from "./EditUser"
 import { AiOutlineUserAdd, GrAdd } from 'react-icons/all'
 const MySwal = withReactContent(Swal);
@@ -77,6 +78,19 @@ const useStyles = makeStyles(theme => ({
     textShadow: '2px 2px 3px hsla(0,0%,45.9%,.8)',
   },
 }));
+const selectorChangeDefault = {
+  "& .MuiOutlinedInput-input": {
+      padding: "4px",
+      fontSize: "0.8rem"
+
+  },
+  "& .MuiFormLabel-root": {
+      mt: "-10px",
+      color: "black",
+      fontSize: "0.8rem"
+
+  }
+}
 
 const Services = [
   { value: 0, label: "Default Services" },
@@ -328,137 +342,142 @@ const ListAll = (props) => {
   return (
     <div>
       <PageContainer heading="" breadcrumbs={breadcrumbs}>
-        <TextField variant="outlined" value={serviseValue} name="services" onChange={(e) => {
-          setServiseValue(e.target.value)
-        }} select sx={{ width: "80vw", marginBottom: "3vh", marginTop: "-3%" }} label="Services" >
-          {
-            Services.map((values, index) => {
-              return <MenuItem key={index} value={values.value}>
-                {values.label}
-              </MenuItem>
-            })
-          }
-        </TextField>
-        <br />
-        <div style={{ marginTop: "-3%" }}>
-          <Box display='flex' flexDirection='row' justifyContent='end' alignItems="center" >
-            {selectedRows.length > 0 &&
-              <Fade right opposite cascade >
-                <Tooltip
-                  title={"Delete Selected Members"}
-                >
-                  <IconButton size="medium" color="default" aria-label="add" onClick={() => {
-                    deleteMultiRow()
-                  }} disabled={busy}>
-                    <Delete style={{ color: 'red' }} />
-                  </IconButton>
-                </Tooltip>
-              </Fade>
-            }
-            {selectedRows.length === 1 &&
-              <Fade right opposite cascade >
-                <Tooltip
-                  title={"Edit Member"}
-                >
-                  <IconButton size="medium" color="default" aria-label="add" onClick={() => {
-                    setShowEdit(true)
-                  }} disabled={busy}>
-                    <Edit style={{ color: 'black' }} />
-                  </IconButton>
-                </Tooltip>
-              </Fade>
-            }
-            {selectedRows.length === 1 &&
-              <Fade right opposite cascade >
-                <Tooltip
-                  title={"Clone"}
-                >
-                  <IconButton size="medium" color="default" aria-label="add" onClick={() => {
-                    setShowEdit(true)
-                  }} disabled={busy}>
-                    <FileCopy style={{ color: 'black' }} />
-                  </IconButton>
-                </Tooltip>
-              </Fade>
-            }
-
-            {selectedRows.length === 1 &&
-              <Fade right opposite cascade >
-                <Tooltip
-                  title={"Run"}
-                >
-                  <IconButton size="medium" color="default" aria-label="add" onClick={() => {
-                    setShowEdit(true)
-                  }} disabled={busy}>
-                    <PlayArrow style={{ color: 'green' }} />
-                  </IconButton>
-                </Tooltip>
-              </Fade>
-            }
-            <Tooltip title={"Create New Transaction"}>
-              <IconButton style={{ backgroundColor:lighten("rgb(71,55,210)",0.2) }} size="medium" color="default" aria-label="add" onClick={() => { setShowCreateDial(true) }}>
-                <GrAdd style={{ color: 'blue' }} />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </div>
-        <br />
-        <MaterialTable
-          tableRef={tableRef}
-          icons={tableIcons}
-          title="Members List"
-          columns={columns}
-          onSelectionChange={(rows) => {
-            setSelectedRows(rows);
-          }}
-          data={async (query) => {
-            try {
-              var { orderBy, orderDirection, page, pageSize, search } = query;
-              const data = await getData({ orderBy: orderBy ? orderBy.field : null, orderDirection, page: (page + 1), pageSize, search });
-              return new Promise((resolve, reject) => {
-                resolve({
-                  data,
-                  page: query.page,
-                  totalCount: data.length //? state.totalAssociations : 5//state.totalAssociations
-                })
-              })
-            } catch (e) {
-              return new Promise((resolve, reject) => {
-                resolve({
-                  data: [],
-                  page: query.page,
-                  totalCount: 0 //? state.totalAssociations : 5//state.totalAssociations
-                })
+        {showCreateDial === false && <>
+          <TextField sx={{...selectorChangeDefault}} variant="outlined" value={serviseValue} name="services" onChange={(e) => {
+            setServiseValue(e.target.value)
+          }} select style={{ width: "25%" }} label="Services" >
+            {
+              Services.map((values, index) => {
+                return <MenuItem key={index} value={values.value}>
+                  {values.label}
+                </MenuItem>
               })
             }
-          }}
-          page={1}
+          </TextField>
+          <br />
+          <div style={{ marginTop: "-3%" }}>
+            <Box display='flex' flexDirection='row' justifyContent='end' alignItems="center" >
+              {selectedRows.length > 0 &&
+                <Fade right opposite cascade >
+                  <Tooltip
+                    title={"Delete Selected Members"}
+                  >
+                    <IconButton size="medium" color="default" aria-label="add" onClick={() => {
+                      deleteMultiRow()
+                    }} disabled={busy}>
+                      <Delete style={{ color: 'red' }} />
+                    </IconButton>
+                  </Tooltip>
+                </Fade>
+              }
+              {selectedRows.length === 1 &&
+                <Fade right opposite cascade >
+                  <Tooltip
+                    title={"Edit Member"}
+                  >
+                    <IconButton size="medium" color="default" aria-label="add" onClick={() => {
+                      setShowEdit(true)
+                    }} disabled={busy}>
+                      <Edit style={{ color: 'black' }} />
+                    </IconButton>
+                  </Tooltip>
+                </Fade>
+              }
+              {selectedRows.length === 1 &&
+                <Fade right opposite cascade >
+                  <Tooltip
+                    title={"Clone"}
+                  >
+                    <IconButton size="medium" color="default" aria-label="add" onClick={() => {
+                      setShowEdit(true)
+                    }} disabled={busy}>
+                      <FileCopy style={{ color: 'black' }} />
+                    </IconButton>
+                  </Tooltip>
+                </Fade>
+              }
 
-          options={{
-            // actionsColumnIndex: -1,
-            selection: true,
-            showSelectAllCheckbox: true,
-            draggable: false,
-            sorting: false,
-            headerStyle: {
-              backgroundColor: theme.palette.primary.main,
-              color: '#fff'
-            },
-            cellStyle: {
-              hover: blue[500]
-            },
-            rowStyle: (rowData, index) => ({
-              backgroundColor: (selectedRows.includes(rowData)) ? '#EEE' : '#FFF',
-              padding: 10
-            }),
-            showFirstLastPageButtons: true,
-            pageSize: 10,
-            padding: 'default',
-            pageSizeOptions: [20, 10, 50, 100],
-          }}
-        />
+              {selectedRows.length === 1 &&
+                <Fade right opposite cascade >
+                  <Tooltip
+                    title={"Run"}
+                  >
+                    <IconButton size="medium" color="default" aria-label="add" onClick={() => {
+                      setShowEdit(true)
+                    }} disabled={busy}>
+                      <PlayArrow style={{ color: 'green' }} />
+                    </IconButton>
+                  </Tooltip>
+                </Fade>
+              }
+              <Tooltip title={"Create New Transaction"}>
+              
+                <Fab color="primary" aria-label="add" onClick={() => { setShowCreateDial(true) }}>
+                  <AddIcon style={{ color: "white" }} />
+                </Fab>
 
-        {showCreateDial && <GrAdd hideDialog={setShowCreateDial} setRefereshData={setRefereshData} />}
+              </Tooltip>
+            </Box>
+          </div>
+          <br />
+          <MaterialTable
+            tableRef={tableRef}
+            icons={tableIcons}
+            title="Members List"
+            columns={columns}
+            onSelectionChange={(rows) => {
+              setSelectedRows(rows);
+            }}
+            data={async (query) => {
+              try {
+                var { orderBy, orderDirection, page, pageSize, search } = query;
+                const data = await getData({ orderBy: orderBy ? orderBy.field : null, orderDirection, page: (page + 1), pageSize, search });
+                return new Promise((resolve, reject) => {
+                  resolve({
+                    data,
+                    page: query.page,
+                    totalCount: data.length //? state.totalAssociations : 5//state.totalAssociations
+                  })
+                })
+              } catch (e) {
+                return new Promise((resolve, reject) => {
+                  resolve({
+                    data: [],
+                    page: query.page,
+                    totalCount: 0 //? state.totalAssociations : 5//state.totalAssociations
+                  })
+                })
+              }
+            }}
+            page={1}
+
+            options={{
+              // actionsColumnIndex: -1,
+              selection: true,
+              showSelectAllCheckbox: true,
+              draggable: false,
+              sorting: false,
+              headerStyle: {
+                backgroundColor: theme.palette.primary.main,
+                color: '#fff'
+              },
+              cellStyle: {
+                hover: blue[500]
+              },
+              rowStyle: (rowData, index) => ({
+                backgroundColor: (selectedRows.includes(rowData)) ? '#EEE' : '#FFF',
+                padding: 10
+              }),
+              showFirstLastPageButtons: true,
+              pageSize: 10,
+              padding: 'default',
+              pageSizeOptions: [20, 10, 50, 100],
+            }}
+          />
+        </>
+        }
+
+        {showCreateDial && <AddNew hideDialog={setShowCreateDial} setRefereshData={setRefereshData} />}
         {/* {showEdit && <EditUser hideDialog={setShowEdit} setRefereshData={setRefereshData} formdata={selectedRows[0]} />} */}
       </PageContainer >
 
